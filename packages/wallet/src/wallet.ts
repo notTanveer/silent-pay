@@ -7,7 +7,11 @@ import { fromOutputScript, toOutputScript } from 'bitcoinjs-lib/src/address';
 import { ECPairFactory } from 'ecpair';
 import { toXOnly } from 'bitcoinjs-lib/src/psbt/bip371';
 import { encrypt, decrypt } from 'bip38';
-import { createOutputs, encodeSilentPaymentAddress } from '@silent-pay/core';
+import {
+    createOutputs,
+    encodeSilentPaymentAddress,
+    SilentBlock,
+} from '@silent-pay/core';
 import { NetworkInterface, DbInterface, Coin, CoinSelector } from './index.ts';
 
 initEccLib(ecc);
@@ -326,5 +330,77 @@ export class Wallet {
         );
         await this.db.saveSilentPaymentAddress(address);
         return address;
+    }
+
+    async scanSilentBlock(silentBlock: SilentBlock): Promise<void> {
+        const addressesToScan: string[] = [];
+        for (const transaction of silentBlock.transactions) {
+            for (const output of transaction.outputs) {
+                const address = await this.deriveAddressFromPubKey(
+                    output.pubKey,
+                );
+                if (address) {
+                    addressesToScan.push(address);
+                }
+            }
+        }
+        const coins = (
+            await Promise.all(
+                addressesToScan.map((address) =>
+                    this.network.getUTXOs(address),
+                ),
+            )
+        ).reduce((acc, utxos) => [...acc, ...utxos], []);
+        await this.db.saveUnspentCoins(coins);
+    }
+
+    async deriveAddressFromPubKey(pubKey: string): Promise<string> {
+        const pubKeyBuffer = Buffer.from(pubKey, 'hex');
+
+        if (pubKeyBuffer.length === 32) {
+            // P2TR (Taproot)
+            try {
+                const { address } = payments.p2tr({
+                    internalPubkey: pubKeyBuffer,
+                });
+                if (address) return address;
+            } catch (error) {
+                console.error('Failed to derive P2TR address:', error);
+            }
+        } else if (
+            pubKeyBuffer.length === 33 &&
+            (pubKeyBuffer[0] === 0x02 || pubKeyBuffer[0] === 0x03)
+        ) {
+            // P2WPKH (Native SegWit)
+            try {
+                const { address } = payments.p2wpkh({ pubkey: pubKeyBuffer });
+                if (address) return address;
+            } catch (error) {
+                console.error('Failed to derive P2WPKH address:', error);
+            }
+
+            // P2SH-P2WPKH (Wrapped SegWit)
+            try {
+                const p2wpkh = payments.p2wpkh({ pubkey: pubKeyBuffer });
+                const { address } = payments.p2sh({ redeem: p2wpkh });
+                if (address) return address;
+            } catch (error) {
+                console.error('Failed to derive P2SH-P2WPKH address:', error);
+            }
+        } else if (
+            (pubKeyBuffer.length === 33 &&
+                (pubKeyBuffer[0] === 0x02 || pubKeyBuffer[0] === 0x03)) ||
+            (pubKeyBuffer.length === 65 && pubKeyBuffer[0] === 0x04)
+        ) {
+            // P2PKH (Legacy)
+            try {
+                const { address } = payments.p2pkh({ pubkey: pubKeyBuffer });
+                if (address) return address;
+            } catch (error) {
+                console.error('Failed to derive P2PKH address:', error);
+            }
+        }
+
+        throw new Error('Unsupported public key format or address type.');
     }
 }
