@@ -109,3 +109,27 @@ export const scanOutputs = (
 
     return matches;
 };
+
+export const scanOutputsWithTweak = (
+    spendPublicKey: Buffer,
+    scanTweak: Buffer,
+    outputs: Buffer[],
+): Map<string, Buffer> => {
+    const matches = new Map<string, Buffer>();
+
+    const tweakedPublicKey = secp256k1.publicKeyTweakAdd(
+        spendPublicKey,
+        scanTweak,
+        true
+    );
+
+    for (let i = outputs.length - 1; i >= 0; i--) {
+        const output = outputs[i];
+        if (output.equals(tweakedPublicKey)) {
+            matches.set(output.toString('hex'), scanTweak);
+            outputs.splice(i, 1);
+        }
+    }
+
+    return matches;
+};
