@@ -1,6 +1,7 @@
 import { toOutputScript } from 'bitcoinjs-lib/src/address';
 import { Network } from 'bitcoinjs-lib';
 import { WITNESS_SCALE_FACTOR } from './consensus.ts';
+import * as ecc from 'tiny-secp256k1';
 
 type CoinStatus = {
     isConfirmed: boolean;
@@ -15,6 +16,7 @@ export class Coin {
     value: number;
     address: string;
     status: CoinStatus;
+    tweak?: string;
 
     constructor(partial: Partial<Coin>) {
         Object.assign(this, partial);
@@ -31,18 +33,47 @@ export class Coin {
             value: this.value,
             address: this.address,
             status: this.status,
+            tweak: this.tweak,
         });
     }
 
-    toInput(network: Network) {
-        return {
-            hash: this.txid,
-            index: this.vout,
-            witnessUtxo: {
-                script: toOutputScript(this.address, network),
-                value: this.value,
-            },
-        };
+    toInput(network: Network, spendPubBuffer: Buffer) {
+        // ensure x-only, if it's a compressed pubkey
+        if (
+            spendPubBuffer.length === 33 &&
+            (spendPubBuffer[0] === 0x02 || spendPubBuffer[0] === 0x03)
+        ) {
+            spendPubBuffer = spendPubBuffer.subarray(1, 33);
+        }
+
+        if (this.tweak) {
+            const tweakBuf = Buffer.from(this.tweak, 'hex');
+            const result = ecc.xOnlyPointAddTweak(spendPubBuffer, tweakBuf);
+            const { xOnlyPubkey } = result;
+            return {
+                hash: this.txid,
+                index: this.vout,
+                witnessUtxo: {
+                    // constructing a taproot script by concatenating
+                    // OP_1 (0x51), a 32 byte push indicator (0x20) and the x-only pubkey
+                    script: Buffer.concat([
+                        Buffer.from([0x51, 0x20]),
+                        xOnlyPubkey,
+                    ]),
+                    value: this.value,
+                },
+                tapInternalKey: spendPubBuffer,
+            };
+        } else {
+            return {
+                hash: this.txid,
+                index: this.vout,
+                witnessUtxo: {
+                    script: toOutputScript(this.address, network),
+                    value: this.value,
+                },
+            };
+        }
     }
 
     estimateSpendingSize(): number {
