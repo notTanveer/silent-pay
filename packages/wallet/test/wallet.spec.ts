@@ -166,7 +166,7 @@ describe('Wallet', () => {
 
         expect(scanKey.privateKey).toBeDefined();
 
-        const matchedUTXOs = wallet.matchSilentBlockOutputs(
+        const matchedUTXOs = wallet['matchSilentBlockOutputs'](
             parsedSilentBlock,
             scanKey.privateKey!,
             spendKey.publicKey,
@@ -192,6 +192,24 @@ describe('Wallet', () => {
             );
         },
     );
+
+    it('should spend a silent payment UTXO', async () => {
+        const allCoins = await walletDB.getUnspentCoins();
+
+        // find silent payment UTXOs (those with tweaks)
+        const silentCoins = allCoins.filter((coin) => coin.tweak);
+        expect(silentCoins.length).toBeGreaterThan(0);
+
+        // spend one of the silent payment UTXOs
+        const destinationAddress = await wallet.deriveReceiveAddress();
+        const amountToSpend = silentCoins[0].value * 0.9; // Leave some for fees
+
+        const txid = await wallet.send(destinationAddress, amountToSpend);
+        expect(txid).toBeDefined();
+
+        const tx = await bitcoinRpcClient.getMempoolEntry(txid);
+        expect(tx).toBeDefined();
+    });
 
     afterAll(async () => {
         await wallet.close();
