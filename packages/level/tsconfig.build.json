@@ -3,7 +3,8 @@
   "compilerOptions": {
     "declaration": false,
     "outDir": "../../dist/level",
-    "noEmit": false
+    "allowImportingTsExtensions": true,
+    "noEmit": true
   },
   "include": ["src/**/*"],
   "exclude": ["**/*spec.ts"]

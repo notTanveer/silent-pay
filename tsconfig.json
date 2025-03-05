@@ -31,14 +31,16 @@
       "@silent-pay/core": ["./packages/core/src"],
       "@silent-pay/esplora": ["./packages/esplora/src"],
       "@silent-pay/level": ["./packages/level/src"],
-      "@silent-pay/wallet": ["./packages/wallet/src"]
+      "@silent-pay/wallet": ["./packages/wallet/src"],
+      "@silent-pay/cli": ["./packages/cli/src"]
     }
   },
   "include": [
     "packages/core/src",
     "packages/esplora/src",
     "packages/level/src",
-    "packages/wallet/src"
+    "packages/wallet/src",
+    "packages/cli/src"
   ],
   "exclude": ["**/*.spec.ts", "node_modules/**/*"]
 }

@@ -1,0 +1,44 @@
+{
+    "name": "@silent-pay/cli",
+    "version": "0.0.0",
+    "description": "Command-line interface for Silent Pay",
+    "main": "dist/cli/index.js",
+    "types": "dist/cli/index.d.ts",
+    "bin": {
+      "silentpay": "dist/cli/index.js"
+    },
+    "files": [
+      "dist/cli"
+    ],
+    "author": "Anmol Sharma",
+    "license": "MIT",
+    "homepage": "https://github.com/Bitshala-Incubator/silent-pay",
+    "scripts": {
+      "test": "jest",
+      "test:cov": "jest --coverage",
+      "build": "tsc -p tsconfig.build.json",
+      "types:check": "tsc --noemit -p tsconfig.build.json"
+    },
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/Bitshala-Incubator/silent-pay.git"
+    },
+    "bugs": {
+      "url": "https://github.com/Bitshala-Incubator/silent-pay/issues"
+    },
+    "keywords": [
+      "silent payments",
+      "bitcoin",
+      "cli"
+    ],
+    "type": "module",
+    "dependencies": {
+      "@silent-pay/core": "^0.0.0",
+      "@silent-pay/esplora": "^0.0.0",
+      "@silent-pay/level": "^0.0.0",
+      "@silent-pay/wallet": "^0.0.0",
+      "commander": "^11.1.0",
+      "inquirer": "^9.2.12",
+      "chalk": "^5.3.0"
+    }
+  }
