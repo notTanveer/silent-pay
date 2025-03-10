@@ -439,6 +439,7 @@ export class Wallet {
             silentBlock,
             this.scanKey.privateKey,
             this.spendKey.publicKey,
+
         );
 
         if (matchedUTXOs.length) {
