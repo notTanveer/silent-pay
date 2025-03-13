@@ -1,0 +1,23 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../dist/cli",
+    "rootDir": "../..",
+    "composite": true,
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declarationMap": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
+  },
+  "include": [
+    "src/**/*",
+    "../../packages/wallet/src/**/*",
+    "../../packages/level/src/**/*",
+    "../../packages/esplora/src/**/*",
+    "../../packages/core/src/**/*"
+  ],
+  "exclude": ["**/*.spec.ts"]
+}
