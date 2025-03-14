@@ -1,16 +1,10 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "../../dist/cli",
-    "rootDir": "../..",
-    "composite": true,
-    "noEmit": false,
-    "emitDeclarationOnly": true,
-    "declarationMap": true,
-    "moduleResolution": "node",
-    "esModuleInterop": true,
-    "skipLibCheck": true,
+    "declaration": false,
+    "outDir": "../../dist",
     "allowImportingTsExtensions": true,
+    "noEmit": false
   },
   "include": [
     "src/**/*",

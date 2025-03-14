@@ -5,7 +5,7 @@
   "main": "dist/cli/index.js",
   "types": "dist/cli/index.d.ts",
   "bin": {
-    "sp": "./dist/cli/index.js"
+    "sp": "./dist/cli/cli/src/index.js"
   },
   "files": [
     "dist/cli"
