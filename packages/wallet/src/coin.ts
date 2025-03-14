@@ -1,6 +1,6 @@
 import { toOutputScript } from 'bitcoinjs-lib/src/address';
 import { Network } from 'bitcoinjs-lib';
-import { WITNESS_SCALE_FACTOR } from './consensus.ts';
+import { WITNESS_SCALE_FACTOR } from './consensus';
 
 type CoinStatus = {
     isConfirmed: boolean;
